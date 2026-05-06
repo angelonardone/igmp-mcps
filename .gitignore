@@ -12,3 +12,6 @@ desktop.ini
 # Logs / temp
 *.log
 *.tmp
+
+# Local-only docs
+InstallationManual.docx
