@@ -57,6 +57,14 @@
         "X-Api-User": "REPLACE_ME_API_USER",
         "X-Api-Password": "REPLACE_ME_API_PASSWORD"
       }
+    },
+    "instantgmp-qc": {
+      "type": "http",
+      "url": "https://REPLACE_ME.igmpapp.com/rest/mcpservers/qc/mcpqcserver",
+      "headers": {
+        "X-Api-User": "REPLACE_ME_API_USER",
+        "X-Api-Password": "REPLACE_ME_API_PASSWORD"
+      }
     }
   }
 }

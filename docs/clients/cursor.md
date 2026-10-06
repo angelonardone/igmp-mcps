@@ -24,7 +24,7 @@ environment. On Windows you can use the bundled `scripts\setup.ps1` helper.
 
 ## 3. Reload Cursor
 
-Cursor → Settings → MCP. The seven `instantgmp-*` servers should appear with
+Cursor → Settings → MCP. The eight `instantgmp-*` servers should appear with
 green status indicators. If any are red, click the row to see the error.
 
 ## 4. Load the skill as a Cursor rule

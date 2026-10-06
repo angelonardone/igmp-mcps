@@ -30,7 +30,8 @@ servers:
     "instantgmp-ebr":      { "type": "remote", "url": "https://yourcompany.igmpapp.com/rest/mcpservers/ebr/mcpebrserver",           "headers": { "X-Api-User": "your_api_user", "X-Api-Password": "your_api_password" }, "enabled": true },
     "instantgmp-qms":      { "type": "remote", "url": "https://yourcompany.igmpapp.com/rest/mcpservers/qms/mcpqmsserver",           "headers": { "X-Api-User": "your_api_user", "X-Api-Password": "your_api_password" }, "enabled": true },
     "instantgmp-projects": { "type": "remote", "url": "https://yourcompany.igmpapp.com/rest/mcpservers/projects/mcpprojectsserver", "headers": { "X-Api-User": "your_api_user", "X-Api-Password": "your_api_password" }, "enabled": true },
-    "instantgmp-docs":     { "type": "remote", "url": "https://yourcompany.igmpapp.com/rest/mcpservers/docs/mcpdocsserver",         "headers": { "X-Api-User": "your_api_user", "X-Api-Password": "your_api_password" }, "enabled": true }
+    "instantgmp-docs":     { "type": "remote", "url": "https://yourcompany.igmpapp.com/rest/mcpservers/docs/mcpdocsserver",         "headers": { "X-Api-User": "your_api_user", "X-Api-Password": "your_api_password" }, "enabled": true },
+    "instantgmp-qc":       { "type": "remote", "url": "https://yourcompany.igmpapp.com/rest/mcpservers/qc/mcpqcserver",             "headers": { "X-Api-User": "your_api_user", "X-Api-Password": "your_api_password" }, "enabled": true }
   }
 }
 ```

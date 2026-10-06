@@ -10,7 +10,7 @@ servers live in [`SKILL.md`](./SKILL.md).
 **Read `SKILL.md` and follow it.** It defines:
 
 - The hard rules (read-only, no fabrication, audit-defensible citations).
-- The 7 MCP servers and what each is for.
+- The 8 MCP servers and what each is for.
 - Status lifecycles, default classifications, and canonical query chains.
 - Things the AI must NOT do, things it SHOULD do, and worked examples.
 

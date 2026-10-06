@@ -33,7 +33,7 @@ Add an `mcp` (or `mcpServers`) block matching the
         "X-Api-Password": "your_api_password"
       }
     }
-    /* …six more entries — see mcp-servers.example.json … */
+    /* …seven more entries — see mcp-servers.example.json … */
   }
 }
 ```
@@ -51,7 +51,7 @@ In the Kimi web app:
 1. Go to **Settings → Tools / MCP servers** (the menu name changes between
    product versions).
 2. Click **Add MCP server**.
-3. For each of the seven `instantgmp-*` servers, enter:
+3. For each of the eight `instantgmp-*` servers, enter:
    - **Type / Transport:** HTTP
    - **URL:** the server URL from
      [`mcp-servers.example.json`](../../mcp-servers.example.json) (replace

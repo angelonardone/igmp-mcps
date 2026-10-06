@@ -11,7 +11,7 @@ This repo distributes three things that any AI client can use:
    `.cursorrules` / etc.
 
 2. **`mcp-servers.template.json`** and **`mcp-servers.example.json`** — the
-   wire-level MCP config. Seven HTTP-transport servers behind two header
+   wire-level MCP config. Eight HTTP-transport servers behind two header
    credentials. Either form works in any standards-compliant MCP client.
 
 3. **`scripts/setup.ps1`** (Windows) and **`scripts/setup.sh`** (Linux/macOS)
@@ -61,7 +61,7 @@ You'll need three values from your InstantGMP administrator:
 
 Then:
 
-### 1. Configure your AI client to talk to the seven InstantGMP MCP servers
+### 1. Configure your AI client to talk to the eight InstantGMP MCP servers
 
 Pick the recipe for your client:
 
@@ -167,7 +167,14 @@ When this repo updates:
 - **Skill** — re-pull `SKILL.md` (or `AGENTS.md`) and re-copy it into the
   rules slot your client uses. Older versions can be removed.
 - **MCP config** — only re-run the setup helper if the URL pattern or
-  header names change. Existing user configs continue to work otherwise.
+  header names change, or a new server is added. Existing user configs
+  continue to work otherwise.
+- **New server: `instantgmp-qc`** (Quality Control: samples, test protocols
+  and QC test results). Add its entry from `mcp-servers.example.json` or
+  `mcp-servers.template.json`, or re-run the setup helper, and re-copy
+  `SKILL.md`. If your client shows `instantgmp-qc` as failed while the other
+  seven connect, your InstantGMP server does not include it yet: ask your
+  InstantGMP administrator.
 - **Setup scripts** — re-pull `scripts/setup.ps1` or `scripts/setup.sh`.
   Existing profiles are unaffected.
 
@@ -191,7 +198,7 @@ sed -i.bak '/# >>> instantgmp-mcp >>>/,/# <<< instantgmp-mcp <<</d' ~/.zshrc  2>
 rm -rf ~/.config/instantgmp
 ```
 
-Then remove the seven `instantgmp-*` server entries from your AI client's
+Then remove the eight `instantgmp-*` server entries from your AI client's
 MCP config and remove the skill rule file (whichever filename you chose).
 
 ## Security & compliance notes
@@ -204,7 +211,7 @@ MCP config and remove the skill rule file (whichever filename you chose).
   login.
 - All MCP calls are written to InstantGMP's API Audit Trail (DDS-AUD-11) under
   the API User identity. Treat MCP calls as auditable events, not casual reads.
-- All seven MCP servers are **read-only**. Any operation that would mutate
+- All eight MCP servers are **read-only**. Any operation that would mutate
   state must happen in the InstantGMP UI under an interactive digital
   signature.
 

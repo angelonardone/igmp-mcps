@@ -234,6 +234,11 @@ cat > "$CONFIG_FILE" <<JSON
       "type": "http",
       "url": "$URL/rest/mcpservers/docs/mcpdocsserver",
       "headers": { "X-Api-User": "$API_USER", "X-Api-Password": "$API_PASSWORD" }
+    },
+    "instantgmp-qc": {
+      "type": "http",
+      "url": "$URL/rest/mcpservers/qc/mcpqcserver",
+      "headers": { "X-Api-User": "$API_USER", "X-Api-Password": "$API_PASSWORD" }
     }
   }
 }

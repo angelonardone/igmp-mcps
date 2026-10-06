@@ -1,6 +1,6 @@
 ---
 name: instantgmp-mcp
-description: Use the InstantGMP MCP servers (Inventory, Setup, Logs, EBR, QMS, Projects, Docs) correctly. Load this skill whenever the user asks about projects, batches, materials, deviations, CAPAs, complaints, audits, equipment, training, vendors, picklists, requisitions, SOPs, controlled documents, or any other GMP/quality/batch-record question that should be answered from InstantGMP data. Enforces 21 CFR Part 11, cGMP and GAMP 5 constraints — read-only, no fabrication, audit-defensible citations.
+description: Use the InstantGMP MCP servers (Inventory, Setup, Logs, EBR, QMS, Projects, Docs, QC) correctly. Load this skill whenever the user asks about projects, batches, materials, deviations, CAPAs, complaints, audits, equipment, training, vendors, picklists, requisitions, SOPs, controlled documents, QC samples, test protocols, QC test results, or any other GMP/quality/batch-record/lab question that should be answered from InstantGMP data. Enforces 21 CFR Part 11, cGMP and GAMP 5 constraints — read-only, no fabrication, audit-defensible citations.
 ---
 
 # Using the InstantGMP MCP servers correctly
@@ -57,7 +57,7 @@ If this guide is loaded, you MUST follow it. The rules below override your defau
 
 ---
 
-## 2. The 7 MCP servers and what they're for
+## 2. The 8 MCP servers and what they're for
 
 | Server | Tools | When to use |
 |---|---|---|
@@ -68,8 +68,9 @@ If this guide is loaded, you MUST follow it. The rules below override your defau
 | **instantgmp-qms** | 53 | Deviations, CAPAs, Complaints, Change Controls, Audits, Incidents, Training, Vendor Mgmt, Forms/Templates. |
 | **instantgmp-logs** | 11 | Equipment log, Room log (cleaning, calibration, PM, activity history). |
 | **instantgmp-docs** | 7 | Controlled-document vault (SOPs, policies, protocols, work instructions, specifications) with version history, audit trail, approvals, and file download. |
+| **instantgmp-qc** | 25 | Quality Control lab: the QC sample register, Master Test Protocols (MTP: the approved, versioned definition of a test) and Active Test Protocols (ATP: one execution of an MTP version on one sample) with step results, QC test results (Pass / Fail), QA reviews, and audit trail. **QC samples are only here, not in Inventory.** |
 
-**Total: 158 read-only tools across 7 servers.**
+**Total: 183 read-only tools across 8 servers.**
 
 ---
 
@@ -86,6 +87,10 @@ If this guide is loaded, you MUST follow it. The rules below override your defau
 | Room | green (in service / clean) ↔ yellow (cleaning due) → red (do-not-use) |
 | QMS records (Deviation/CAPA/Complaint/CC/Audit/Incident) | Initiated → In-Process → In-Review → Closed Out |
 | Controlled document | Draft → In-Review → Approved → Effective → Obsolete |
+| MTP (Master Test Protocol) | In Process → Locked → **Approved** / **Rejected** |
+| ATP (Active Test Protocol) | Generate → Issued → In-Process → Locked → **Reviewed** / **Rejected** |
+| QC sample | Registered, not checked in → Checked In → In Testing → In Review → Reviewed → Disposed |
+| QC test result (per ATP) | Pending → **Pass** / **Fail** |
 
 State transitions in the UI require interactive digital signatures — they never happen
 through the MCP. Always show the *current* status field from the tool response; don't
@@ -103,6 +108,16 @@ infer state from context.
 - **Only documents in "Effective" (or equivalent Approved) status are in force.** Draft /
   In-Review / Obsolete versions are visible through `query_documents` but should not be
   cited as the controlling version unless explicitly asked for historical context.
+- **QC samples are not returned by the Inventory server.** Look them up with
+  `instantgmp-qc.query_samples` / `get_sample`. `get_sample` on a regular inventory receipt
+  returns `RecordDoesNotExists`, and that is correct.
+- **An ATP uses the materials, equipment and documents of its MTP version.** Get them with
+  `query_mtp_materials`, `query_mtp_equipment` and `query_mtp_documents` using the ATP's
+  `mtp_id` + `mtp_version_id`.
+- **`query_mtp_equipment` shows the equipment status TODAY, not on the test date.** For the
+  calibration / PM status when the test ran, use the Logs server history.
+- **An MTP can reference an outdated SOP.** In `query_mtp_documents`, a `NewVersionNumber`
+  higher than `VersionNumberInMTP` means a newer version of the document is approved.
 
 ---
 
@@ -137,6 +152,7 @@ every multi-step question.
    instantgmp-qms.query_incidents (batch_number)       →   "
    instantgmp-qms.query_complaints (batch_number)      →   "
    instantgmp-qms.query_capas (filter source records)  → follow-up CAPAs
+5. instantgmp-qc.query_atp (batch_number)              → QC tests of those batches (see Chain 9)
 ```
 
 ### Chain 2 — Material → Where used (impact assessment)
@@ -149,6 +165,7 @@ every multi-step question.
 5. instantgmp-ebr.query_bpr_materials                  → batches using it (cross-ref with usage)
 6. instantgmp-qms.query_deviations (material_name)     → quality issues
    instantgmp-qms.query_incidents (material_name)      →   "
+7. instantgmp-qc.query_samples (part_number)           → QC samples of the material and their tests
 ```
 
 ### Chain 3 — Quality issue → Root cause + scope (incident response)
@@ -231,6 +248,48 @@ but needs attention. Green is in service. Tell the user this directly.
 5. Cite the exact version + effective date range in your answer.
 ```
 
+### Chain 9 — Batch → QC testing results
+*"Has batch 0122-01-001 passed its QC tests?"*
+```
+1. instantgmp-qc.query_samples  batch_number="0122-01-001"
+   → samples taken from the batch. ONE ROW PER ASSIGNED MTP, each with the key of the
+     ATP that tests it (MTPId, MTPVersionId, ATPId, ATPNumber) and the sample status.
+   instantgmp-qc.query_samples_pending_checkin  batch_number="0122-01-001"
+   → samples registered but not received by the lab yet (no testing started).
+2. instantgmp-qc.query_atp  batch_number="0122-01-001"
+   → every ATP for the batch, with StatusName, TestDate, ReviewDate.
+3. For each ATP: instantgmp-qc.query_atp_qc_tests  mtp_id / mtp_version_id / atp_id
+   → each reported result with its Specification and Status (Pass / Fail / Pending).
+4. For each ATP: instantgmp-qc.query_atp_reviews
+   → the QA review signature (Approve / Reject, who, when).
+5. instantgmp-qms.query_deviations  batch_number="0122-01-001"
+   → deviations raised against the batch (for example an OOS investigation).
+6. Answer per ATP: ATPNumber, status, every result against its specification, reviewer.
+```
+Say "all QC tests passed" only if every ATP for the batch is Reviewed and every result is
+Pass. A Pending or empty result is not a pass, and a sample still waiting for check-in
+means testing has not started.
+
+### Chain 10 — Failed or out-of-specification QC result
+*"ATP 0026-01-001 has a failed result. What happened?"*
+```
+1. instantgmp-qc.query_atp  (filter by mtp_id, batch_number or sample_id)
+   → find the row whose ATPNumber is 0026-01-001 and take its key
+     (MTPId, MTPVersionId, ATPId) from the response.
+2. instantgmp-qc.get_atp                → sample, material, batch, dates, status.
+3. instantgmp-qc.query_atp_qc_tests     → which result failed, against which specification.
+4. instantgmp-qc.query_atp_instructions → how each step was executed: Result,
+   TestResultStatus, Deviation comments, performer / verifier signatures. Steps with
+   Status Red have a deviation that is not reviewed yet.
+5. instantgmp-qc.query_mtp_equipment    (same mtp_id + mtp_version_id) → instruments used.
+   Then instantgmp-logs.query_equipment_log / query_equipment_log_logs
+   → calibration and PM status around the test date (query_mtp_equipment shows today's).
+6. instantgmp-qc.query_mtp_documents    → SOPs and methods the test followed.
+7. instantgmp-qc.query_atp_history      → who changed what, and when.
+8. instantgmp-qms.query_deviations      (batch_number, OOS classification) → the formal
+   investigation, if one was opened.
+```
+
 ---
 
 ## 6. Filtering rules
@@ -245,6 +304,12 @@ but needs attention. Green is in service. Tell the user this directly.
   (YYYY-MM-DD).
 - **Pagination:** every query tool supports `page` (default 1). Check `IsLastPage` in the
   response. If you need to count records, page through them — don't fabricate totals.
+- **QC keys:** an MTP is `mtp_id` + `mtp_version_id`; an ATP is `mtp_id` + `mtp_version_id`
+  + `atp_id`. `ATPNumber` (e.g. `0026-01-001`) is the label users see: find it with
+  `query_atp` and take the key from the response. A sample's key is
+  `inventory_receipt_number`; `SampleId` is the number users see. `query_samples` filters
+  by `sample_id`, while `get_sample`, `query_sample_usage` and `query_sample_files` need
+  `inventory_receipt_number`.
 
 ---
 
@@ -265,6 +330,10 @@ but needs attention. Green is in service. Tell the user this directly.
   the sanctioned API surface.
 - Don't summarize a deviation/CAPA/complaint without including the record ID and current
   status. The user must always be able to trace back.
+- Don't say a sample or batch "passed QC" unless you've seen, for every ATP that tests it,
+  status Reviewed and every QC test result Pass (`query_atp_qc_tests`).
+- Don't look for QC samples in the Inventory server, and don't conclude "there are no
+  samples" from it. QC samples are only in `instantgmp-qc`.
 
 ---
 
@@ -272,7 +341,7 @@ but needs attention. Green is in service. Tell the user this directly.
 
 - Start with the right hub server for the question (Projects for project-scoped, Inventory
   for material-scoped, QMS for quality-scoped, EBR for batch-scoped, Docs for controlled
-  documents / SOPs).
+  documents / SOPs, QC for lab testing: samples, test protocols and test results).
 - Walk the cross-server pointers in tool descriptions — they tell you the next step.
 - Cite the tool and identifier for every fact you state (e.g. "from `get_bpr` bpr_id=789").
 - Show status, dates, and signers when relevant — this is regulated data.
@@ -368,8 +437,10 @@ NOT this:
 ## 12. Reference docs to consult
 
 Inside the InstantGMP project:
-- `MCP-SERVICES.md` — full documentation of all 7 servers, their tools, and cross-server
-  relationships. **Read this if you're unsure which tool to call.**
+- `MCP-SERVICES.md` — full documentation of the servers, their tools, and cross-server
+  relationships. **Read this if you're unsure which tool to call.** Every server also
+  describes itself: its `initialize` instructions and each tool's description list the
+  keys, status codes and the next tool to call.
 - `sdlc-dds-igmp-4.007.001.docx` — the Detailed Design Specification with all DDS-IDs
   referenced above. Authoritative source for business rules.
 

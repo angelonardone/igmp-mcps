@@ -35,7 +35,8 @@ GUI form with the same fields).
     "instantgmp-ebr":      { "type": "http", "url": "https://YOUR-IGMP-HOST/rest/mcpservers/ebr/mcpebrserver",           "headers": { "X-Api-User": "YOUR_API_USER", "X-Api-Password": "YOUR_API_PASSWORD" } },
     "instantgmp-qms":      { "type": "http", "url": "https://YOUR-IGMP-HOST/rest/mcpservers/qms/mcpqmsserver",           "headers": { "X-Api-User": "YOUR_API_USER", "X-Api-Password": "YOUR_API_PASSWORD" } },
     "instantgmp-projects": { "type": "http", "url": "https://YOUR-IGMP-HOST/rest/mcpservers/projects/mcpprojectsserver", "headers": { "X-Api-User": "YOUR_API_USER", "X-Api-Password": "YOUR_API_PASSWORD" } },
-    "instantgmp-docs":     { "type": "http", "url": "https://YOUR-IGMP-HOST/rest/mcpservers/docs/mcpdocsserver",         "headers": { "X-Api-User": "YOUR_API_USER", "X-Api-Password": "YOUR_API_PASSWORD" } }
+    "instantgmp-docs":     { "type": "http", "url": "https://YOUR-IGMP-HOST/rest/mcpservers/docs/mcpdocsserver",         "headers": { "X-Api-User": "YOUR_API_USER", "X-Api-Password": "YOUR_API_PASSWORD" } },
+    "instantgmp-qc":       { "type": "http", "url": "https://YOUR-IGMP-HOST/rest/mcpservers/qc/mcpqcserver",             "headers": { "X-Api-User": "YOUR_API_USER", "X-Api-Password": "YOUR_API_PASSWORD" } }
   }
 }
 ```
@@ -49,7 +50,7 @@ with literal `REPLACE_ME` placeholders is at
 
 1. Decide where your client stores MCP config (file path, settings UI, or
    project-local config). Consult its docs.
-2. Paste the seven server entries from above into that config.
+2. Paste the eight server entries from above into that config.
 3. Either:
    - Set the env vars `IGMP_URL`, `IGMP_API_USER`, `IGMP_API_PASSWORD` if your
      client expands `${VAR}` in MCP config (most modern clients do), **or**
@@ -63,12 +64,16 @@ with literal `REPLACE_ME` placeholders is at
 
 ## Tips
 
-- **No trailing slash** on `IGMP_URL`. The seven server URLs each append their
+- **No trailing slash** on `IGMP_URL`. The eight server URLs each append their
   own path.
+- `instantgmp-qc` (Quality Control) is the newest server. If your client
+  shows it as failed while the other seven connect, your InstantGMP server
+  does not include it yet: ask your InstantGMP administrator, and remove the
+  entry until then.
 - The `X-Api-User` / `X-Api-Password` headers go on every request. Most clients
   send these as static headers per server. If yours rotates auth, you'll need
   a wrapper script.
-- All seven servers are **read-only** — they never mutate state. If your
+- All eight servers are **read-only** — they never mutate state. If your
   client exposes "tool approval" prompts you can safely auto-allow these.
 - The `APIUser` personnel record should be dedicated per AI client / per
   environment. Don't reuse a real human user's login. (See `SKILL.md` §9.)
