@@ -26,7 +26,7 @@ Most AI clients have a free-text box for custom instructions, system prompt, or
 
 In practice it works to drop in the whole file — the model just needs to see
 the rules and the canonical query chains. If you have a small character limit,
-keep at minimum sections **1 (hard rules)**, **2 (the 8 servers)**, and **9
+keep at minimum sections **1 (hard rules)**, **2 (the 9 servers)**, and **9
 (authentication & connection)**, and link to this repo for the rest.
 
 ## Option 3 — Reference the file at runtime
@@ -43,6 +43,6 @@ This works well in Claude Code, OpenCode, Cursor agent mode, and similar tools.
 
 When this repo updates `SKILL.md`, re-pull the file (or re-copy/paste it into
 your client's config). The MCP server config does not need to change unless
-endpoint URLs change or a new server is added (for example `instantgmp-qc`,
+endpoint URLs change or a new server is added (for example `instantgmp-audit`,
 added in this version: add its entry from
 [`mcp-servers.example.json`](../mcp-servers.example.json)).

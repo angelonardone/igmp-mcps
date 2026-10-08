@@ -11,7 +11,7 @@ Run the Command Palette command:
 
 The file lives at `~/.continue/config.yaml` (or `config.json` in older builds).
 
-## 2. Add the eight InstantGMP servers
+## 2. Add the nine InstantGMP servers
 
 In `config.yaml`, add an `mcpServers` section:
 
@@ -62,6 +62,12 @@ mcpServers:
   - name: instantgmp-qc
     type: http
     url: https://yourcompany.igmpapp.com/rest/mcpservers/qc/mcpqcserver
+    headers:
+      X-Api-User: your_api_user
+      X-Api-Password: your_api_password
+  - name: instantgmp-audit
+    type: http
+    url: https://yourcompany.igmpapp.com/rest/mcpservers/audit/mcpauditserver
     headers:
       X-Api-User: your_api_user
       X-Api-Password: your_api_password

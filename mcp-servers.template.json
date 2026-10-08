@@ -65,6 +65,14 @@
         "X-Api-User": "${IGMP_API_USER}",
         "X-Api-Password": "${IGMP_API_PASSWORD}"
       }
+    },
+    "instantgmp-audit": {
+      "type": "http",
+      "url": "${IGMP_URL}/rest/mcpservers/audit/mcpauditserver",
+      "headers": {
+        "X-Api-User": "${IGMP_API_USER}",
+        "X-Api-Password": "${IGMP_API_PASSWORD}"
+      }
     }
   }
 }

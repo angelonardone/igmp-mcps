@@ -65,6 +65,14 @@
         "X-Api-User": "REPLACE_ME_API_USER",
         "X-Api-Password": "REPLACE_ME_API_PASSWORD"
       }
+    },
+    "instantgmp-audit": {
+      "type": "http",
+      "url": "https://REPLACE_ME.igmpapp.com/rest/mcpservers/audit/mcpauditserver",
+      "headers": {
+        "X-Api-User": "REPLACE_ME_API_USER",
+        "X-Api-Password": "REPLACE_ME_API_PASSWORD"
+      }
     }
   }
 }

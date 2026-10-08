@@ -16,7 +16,7 @@ API user, and API password. Windsurf's config takes literal values.
 ## 2. Reload Windsurf's MCP
 
 Windsurf → Cascade panel → **Configure MCP** → click the refresh / reload
-button. The eight `instantgmp-*` servers should appear as connected.
+button. The nine `instantgmp-*` servers should appear as connected.
 
 ## 3. Load the skill
 

@@ -272,6 +272,11 @@ function Build-McpConfig {
         url     = "$clean/rest/mcpservers/qc/mcpqcserver"
         headers = [ordered]@{ 'X-Api-User' = $User; 'X-Api-Password' = $Password }
     }
+    $servers['instantgmp-audit'] = [ordered]@{
+        type    = 'http'
+        url     = "$clean/rest/mcpservers/audit/mcpauditserver"
+        headers = [ordered]@{ 'X-Api-User' = $User; 'X-Api-Password' = $Password }
+    }
     return [ordered]@{ mcpServers = $servers }
 }
 

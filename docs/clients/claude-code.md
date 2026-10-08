@@ -14,7 +14,7 @@ starting point — copy the `mcpServers` object out of it.
 cp mcp-servers.template.json .mcp.json
 ```
 
-(Or paste the eight `instantgmp-*` server entries into an existing `.mcp.json`.)
+(Or paste the nine `instantgmp-*` server entries into an existing `.mcp.json`.)
 
 ## 2. Set the credentials
 
@@ -68,5 +68,5 @@ In the project, start Claude Code and ask:
 > List the first three projects in InstantGMP.
 
 You should see Claude call `instantgmp-projects.query_projects` and quote real
-project records back. If you don't, run `claude mcp list` to confirm the eight
+project records back. If you don't, run `claude mcp list` to confirm the nine
 servers loaded, and double-check `IGMP_URL` has no trailing slash.

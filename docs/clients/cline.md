@@ -13,9 +13,9 @@ In VS Code, open the Command Palette and run:
 That opens `cline_mcp_settings.json` in your editor. (If you don't see the
 command, click the Cline panel's MCP icon and pick **Configure MCP Servers**.)
 
-## 2. Add the eight InstantGMP servers
+## 2. Add the nine InstantGMP servers
 
-Paste the eight server entries from
+Paste the nine server entries from
 [`mcp-servers.example.json`](../../mcp-servers.example.json) — Cline's MCP
 config uses literal values, not `${VAR}` placeholders.
 
@@ -32,21 +32,21 @@ The shape Cline expects is the same `mcpServers` object:
         "X-Api-Password": "your_api_password"
       }
     }
-    /* …seven more entries — see mcp-servers.example.json … */
+    /* …eight more entries — see mcp-servers.example.json … */
   }
 }
 ```
 
-Replace the URL host, `X-Api-User`, and `X-Api-Password` for each of the eight
+Replace the URL host, `X-Api-User`, and `X-Api-Password` for each of the nine
 servers (`instantgmp-inventory`, `-setup`, `-logs`, `-ebr`, `-qms`,
-`-projects`, `-docs`, `-qc`).
+`-projects`, `-docs`, `-qc`, `-audit`).
 
 Save the file.
 
 ## 3. Reload Cline's MCP servers
 
 In the Cline panel's MCP tab, click **Restart** (or close and reopen VS Code).
-You should see all eight `instantgmp-*` servers listed as **Connected**.
+You should see all nine `instantgmp-*` servers listed as **Connected**.
 
 ## 4. Load the skill
 

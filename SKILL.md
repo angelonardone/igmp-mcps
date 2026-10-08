@@ -1,6 +1,6 @@
 ---
 name: instantgmp-mcp
-description: Use the InstantGMP MCP servers (Inventory, Setup, Logs, EBR, QMS, Projects, Docs, QC) correctly. Load this skill whenever the user asks about projects, batches, materials, deviations, CAPAs, complaints, audits, equipment, training, vendors, picklists, requisitions, SOPs, controlled documents, QC samples, test protocols, QC test results, or any other GMP/quality/batch-record/lab question that should be answered from InstantGMP data. Enforces 21 CFR Part 11, cGMP and GAMP 5 constraints — read-only, no fabrication, audit-defensible citations.
+description: Use the InstantGMP MCP servers (Inventory, Setup, Logs, EBR, QMS, Projects, Docs, QC, Audit) correctly. Load this skill whenever the user asks about projects, batches, materials, deviations, CAPAs, complaints, audits, equipment, training, vendors, picklists, requisitions, SOPs, controlled documents, QC samples, test protocols, QC test results, the audit trail (who changed, opened or queried a record), or any other GMP/quality/batch-record/lab question that should be answered from InstantGMP data. Enforces 21 CFR Part 11, cGMP and GAMP 5 constraints — read-only, no fabrication, audit-defensible citations.
 ---
 
 # Using the InstantGMP MCP servers correctly
@@ -29,7 +29,9 @@ If this guide is loaded, you MUST follow it. The rules below override your defau
 
 2. **Every MCP call is recorded in the API Audit Trail (DDS-AUD-11).** Request body, response
    body, user, timestamp — all written to the audit log. Treat MCP calls as auditable events,
-   not casual reads. Don't run speculative queries the user didn't ask for.
+   not casual reads. Don't run speculative queries the user didn't ask for. They also appear
+   in the MCP Audit, which `instantgmp-audit.query_mcp_calls` returns (calls to the audit
+   server included).
 
 3. **Never fabricate identifiers.** Project codes, batch numbers, lot numbers, person IDs,
    part numbers, receipt numbers, document numbers — all live in the database with strict
@@ -57,7 +59,7 @@ If this guide is loaded, you MUST follow it. The rules below override your defau
 
 ---
 
-## 2. The 8 MCP servers and what they're for
+## 2. The 9 MCP servers and what they're for
 
 | Server | Tools | When to use |
 |---|---|---|
@@ -69,8 +71,9 @@ If this guide is loaded, you MUST follow it. The rules below override your defau
 | **instantgmp-logs** | 11 | Equipment log, Room log (cleaning, calibration, PM, activity history). |
 | **instantgmp-docs** | 7 | Controlled-document vault (SOPs, policies, protocols, work instructions, specifications) with version history, audit trail, approvals, and file download. |
 | **instantgmp-qc** | 25 | Quality Control lab: the QC sample register, Master Test Protocols (MTP: the approved, versioned definition of a test) and Active Test Protocols (ATP: one execution of an MTP version on one sample) with step results, QC test results (Pass / Fail), QA reviews, and audit trail. **QC samples are only here, not in Inventory.** |
+| **instantgmp-audit** | 7 | The audit trail (21 CFR Part 11). **Data Audit:** who changed which record, when, and what, field by field, with raw and readable values. **Access Audit:** which screens each user opened. **API and MCP Audit:** the calls to the REST APIs and to the MCP tools. |
 
-**Total: 183 read-only tools across 8 servers.**
+**Total: 190 read-only tools across 9 servers.**
 
 ---
 
@@ -290,6 +293,30 @@ means testing has not started.
    investigation, if one was opened.
 ```
 
+### Chain 11 — Who changed this record, and what? (audit trail)
+*"Who changed receipt 712, and what did they change?"*
+
+```
+1. instantgmp-inventory.query_inventory              → the receipt and its key (InventoryReceiptNumber)
+2. instantgmp-audit.list_audited_entities  entity="Inventory"
+                                                    → the audit name of that kind of record: users say
+                                                      "receipt", the audit says Inventory; a batch is
+                                                      BPR Cover Page
+3. instantgmp-audit.query_data_changes  key_name="InventoryReceiptNumber"  key_value="712"
+     from_date / to_date (the period, whenever known) → one row per operation: HistoryId, Date,
+                                                      who, Operation (INS / UPD / DLT)
+4. instantgmp-audit.get_change_details  history_id="<id1>,<id2>"
+                                                    → field by field: OldValue / NewValue (raw, the
+                                                      record) and OldText / NewText (readable)
+5. If a recent change is missing: instantgmp-audit.get_audit_status
+                                                    → is it still pending the audit conversion?
+```
+
+For a batch, MPR, MTP or ATP, the History tools of EBR and QC (`query_bpr_history`,
+`query_mpr_history`, `query_mtp_history`, `query_atp_history`) already return the
+`HistoryId`: go straight to step 4. To see who **opened** a record without changing it, use
+`instantgmp-audit.query_access_log` with `url=",<key>,"` (for example `",136,"`).
+
 ---
 
 ## 6. Filtering rules
@@ -310,6 +337,12 @@ means testing has not started.
   `inventory_receipt_number`; `SampleId` is the number users see. `query_samples` filters
   by `sample_id`, while `get_sample`, `query_sample_usage` and `query_sample_files` need
   `inventory_receipt_number`.
+- **Audit trail dates:** `instantgmp-audit.query_data_changes` requires `from_date` and
+  `to_date` unless both `key_name` and `key_value` are given (a key needs both parts). A key
+  search over a long period can take minutes on some installations: narrow the period
+  whenever you can, for example from the record's creation date.
+- **Audit trail system changes:** changes made without an application user (system
+  processes) are most of the audit trail and are hidden unless `include_system=1`.
 
 ---
 
@@ -334,6 +367,11 @@ means testing has not started.
   status Reviewed and every QC test result Pass (`query_atp_qc_tests`).
 - Don't look for QC samples in the Inventory server, and don't conclude "there are no
   samples" from it. QC samples are only in `instantgmp-qc`.
+- Don't conclude "nobody changed it" from an empty `query_data_changes`. A recent change can
+  still be pending the audit conversion (check `get_audit_status`: a change newer than
+  `AvailableTo` is not visible yet), or be a system change (`include_system=1`).
+- Don't present the readable audit value (`OldText` / `NewText`) as the record. The raw
+  `OldValue` / `NewValue` is the audit trail entry: quote it when exactness matters.
 
 ---
 
@@ -341,7 +379,8 @@ means testing has not started.
 
 - Start with the right hub server for the question (Projects for project-scoped, Inventory
   for material-scoped, QMS for quality-scoped, EBR for batch-scoped, Docs for controlled
-  documents / SOPs, QC for lab testing: samples, test protocols and test results).
+  documents / SOPs, QC for lab testing: samples, test protocols and test results, Audit for
+  who changed, opened or queried a record).
 - Walk the cross-server pointers in tool descriptions — they tell you the next step.
 - Cite the tool and identifier for every fact you state (e.g. "from `get_bpr` bpr_id=789").
 - Show status, dates, and signers when relevant — this is regulated data.
