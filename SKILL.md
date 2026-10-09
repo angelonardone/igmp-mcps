@@ -338,9 +338,10 @@ For a batch, MPR, MTP or ATP, the History tools of EBR and QC (`query_bpr_histor
   by `sample_id`, while `get_sample`, `query_sample_usage` and `query_sample_files` need
   `inventory_receipt_number`.
 - **Audit trail dates:** `instantgmp-audit.query_data_changes` requires `from_date` and
-  `to_date` unless both `key_name` and `key_value` are given (a key needs both parts). A key
-  search over a long period can take minutes on some installations: narrow the period
-  whenever you can, for example from the record's creation date.
+  `to_date` unless both `key_name` and `key_value` are given (a key needs both parts). The
+  key name is matched regardless of case (`bprid` finds `BprId`). A key search without dates
+  reads the whole audit trail and can take tens of seconds on a large installation: narrow
+  the period whenever you can, for example from the record's creation date.
 - **Audit trail system changes:** changes made without an application user (system
   processes) are most of the audit trail and are hidden unless `include_system=1`.
 
